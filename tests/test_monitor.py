@@ -6,18 +6,9 @@ import threading
 import pytest
 from pathlib import Path
 
-# We'll define a stub for the monitor function to test interface and basic logic
-# Actual implementation will live in src/monitor.py
-
-def fake_monitor_folder(input_dir, callback, stop_event, poll_interval=0.1):
-    """Fake monitor that calls callback for each new PDF in the folder."""
-    seen = set()
-    while not stop_event.is_set():
-        for f in Path(input_dir).glob("*.pdf"):
-            if f not in seen:
-                seen.add(f)
-                callback(str(f))
-        time.sleep(poll_interval)
+import sys
+sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+from src.monitor import monitor_folder
 
 
 def test_monitor_detects_new_pdf(tmp_path):
@@ -31,7 +22,7 @@ def test_monitor_detects_new_pdf(tmp_path):
         detected.append(path)
         stop_event.set()
 
-    t = threading.Thread(target=fake_monitor_folder, args=(input_dir, on_new_pdf, stop_event))
+    t = threading.Thread(target=monitor_folder, args=(input_dir, on_new_pdf, stop_event, 0.1))
     t.start()
 
     # Simulate adding a PDF
@@ -55,7 +46,7 @@ def test_monitor_ignores_non_pdf(tmp_path):
         detected.append(path)
         stop_event.set()
 
-    t = threading.Thread(target=fake_monitor_folder, args=(input_dir, on_new_pdf, stop_event))
+    t = threading.Thread(target=monitor_folder, args=(input_dir, on_new_pdf, stop_event, 0.1))
     t.start()
 
     # Add a non-PDF file
@@ -80,7 +71,7 @@ def test_monitor_detects_multiple_pdfs(tmp_path):
         if len(detected) == 2:
             stop_event.set()
 
-    t = threading.Thread(target=fake_monitor_folder, args=(input_dir, on_new_pdf, stop_event))
+    t = threading.Thread(target=monitor_folder, args=(input_dir, on_new_pdf, stop_event, 0.1))
     t.start()
 
     pdf1 = input_dir / "one.pdf"
