@@ -5,6 +5,8 @@ import threading
 import time
 import logging
 
+logger = logging.getLogger("pdf2md.monitor")
+
 class PDFHandler(FileSystemEventHandler):
     def __init__(self, callback):
         super().__init__()
@@ -16,6 +18,7 @@ class PDFHandler(FileSystemEventHandler):
             path = Path(event.src_path)
             if path not in self.seen:
                 self.seen.add(path)
+                logger.info(f"Detected new PDF: {path}")
                 self.callback(str(path))
 
     def on_moved(self, event):
@@ -24,6 +27,7 @@ class PDFHandler(FileSystemEventHandler):
             path = Path(event.dest_path)
             if path not in self.seen:
                 self.seen.add(path)
+                logger.info(f"Detected moved PDF: {path}")
                 self.callback(str(path))
 
 def monitor_folder(input_dir, callback, stop_event=None, poll_interval=1.0):
@@ -36,11 +40,17 @@ def monitor_folder(input_dir, callback, stop_event=None, poll_interval=1.0):
     observer = Observer()
     observer.schedule(handler, str(input_dir), recursive=False)
     observer.start()
+    logger.info(f"Started monitoring folder: {input_dir}")
     try:
         while True:
             if stop_event and stop_event.is_set():
+                logger.info("Stop event set, stopping folder monitor.")
                 break
             time.sleep(poll_interval)
+    except Exception as e:
+        logger.error(f"Error in folder monitoring loop: {e}")
+        raise
     finally:
         observer.stop()
         observer.join()
+        logger.info(f"Stopped monitoring folder: {input_dir}")
