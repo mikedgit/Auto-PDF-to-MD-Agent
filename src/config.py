@@ -28,9 +28,9 @@ class Config:
 
 def load_config() -> Config:
     return Config(
-        INPUT_DIR=get_env_var("INPUT_DIR", required=True),
-        OUTPUT_DIR=get_env_var("OUTPUT_DIR", required=True),
-        DONE_DIR=get_env_var("DONE_DIR", required=True),
-        LM_STUDIO_API=get_env_var("LM_STUDIO_API", "http://localhost:1234", required=True),
-        LOG_FILE=get_env_var("LOG_FILE", "app.log"),
+        INPUT_DIR=get_env_var("PDF2MD_INPUT_DIR", required=True),
+        OUTPUT_DIR=get_env_var("PDF2MD_OUTPUT_DIR", required=True),
+        DONE_DIR=get_env_var("PDF2MD_DONE_DIR", required=True),
+        LM_STUDIO_API=get_env_var("PDF2MD_LM_STUDIO_API", "http://localhost:1234", required=True),
+        LOG_FILE=get_env_var("PDF2MD_LOG_FILE", "app.log"),
     )
