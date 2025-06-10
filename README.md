@@ -41,6 +41,7 @@ This project is a Python-based macOS background service that monitors a network 
    - `PDF2MD_DONE_DIR`: Path to the directory where processed PDFs are moved
    - `PDF2MD_LM_STUDIO_API`: URL for LM Studio API (e.g., `http://localhost:1234`)
    - `PDF2MD_LOG_FILE`: (optional) Path for the log file (default: `app.log`)
+   - `PDF2MD_MD_PAGE_DELIMITER`: (optional) If set to `delimited`, pages are separated with a markdown divider. If `concat`, all pages are appended with no divider. Default: `delimited`
 
    You may copy `.env.example` to `.env` and edit as needed. The app will automatically load `.env` if `python-dotenv` is installed.
 5. **Set up LM Studio** and ensure it is accessible from the service.
@@ -50,9 +51,25 @@ This project is a Python-based macOS background service that monitors a network 
    ```
 
 ## Usage
+
+To start the service, run:
+```sh
+python -m src.pdf2md_service
+```
+Or, if running directly:
+```sh
+python src/pdf2md_service.py
+```
+
 - The service will run in the background, monitoring the configured folder.
 - Place a PDF in the input directory to trigger processing.
 - Markdown files will appear in the output directory; processed PDFs will be moved to the done directory.
+
+**Note:** The LM Studio API URL in your environment variable should include `/v1`, for example:
+```
+PDF2MD_LM_STUDIO_API=http://localhost:1234/v1
+```
+If using a remote server, use its address (e.g., `http://192.168.0.74:1234/v1`).
 
 ## Logging
 - All activity and errors are logged to a file for troubleshooting and auditing.

@@ -1,3 +1,7 @@
 pytest
 watchdog
 python-dotenv
+openai
+pypdf
+pytest-asyncio
+olmocr

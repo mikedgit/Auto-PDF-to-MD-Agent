@@ -22,6 +22,7 @@ class Config:
     DONE_DIR: str
     LM_STUDIO_API: str
     LOG_FILE: str = "app.log"
+    MD_PAGE_DELIMITER: str = "delimited"  # 'delimited' or 'concat'
 
     def as_dict(self):
         return self.__dict__
@@ -33,4 +34,5 @@ def load_config() -> Config:
         DONE_DIR=get_env_var("PDF2MD_DONE_DIR", required=True),
         LM_STUDIO_API=get_env_var("PDF2MD_LM_STUDIO_API", "http://localhost:1234", required=True),
         LOG_FILE=get_env_var("PDF2MD_LOG_FILE", "app.log"),
+        MD_PAGE_DELIMITER=get_env_var("PDF2MD_MD_PAGE_DELIMITER", "delimited"),
     )
