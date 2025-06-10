@@ -35,7 +35,14 @@ This project is a Python-based macOS background service that monitors a network 
    ```sh
    pip install -r requirements.txt
    ```
-4. **Configure paths** to the input, output, and done directories in the configuration file (to be documented).
+4. **Configure environment variables** for the following required settings (can be set in a `.env` file):
+   - `INPUT_DIR`: Path to the input directory to monitor for PDFs
+   - `OUTPUT_DIR`: Path to the output directory for markdown files
+   - `DONE_DIR`: Path to the directory where processed PDFs are moved
+   - `LM_STUDIO_API`: URL for LM Studio API (e.g., `http://localhost:1234`)
+   - `LOG_FILE`: (optional) Path for the log file (default: `app.log`)
+
+   You may copy `.env.example` to `.env` and edit as needed. The app will automatically load `.env` if `python-dotenv` is installed.
 5. **Set up LM Studio** and ensure it is accessible from the service.
 6. **Run tests:**
    ```sh
