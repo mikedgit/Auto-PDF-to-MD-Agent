@@ -20,9 +20,12 @@ This project is a Python-based macOS background service that monitors a network 
 - Python 3.9+
 - macOS
 - Access to LM Studio and a compatible OCR model
-- Access to network share directories for input, output, and done folders
+- Access to network share directories for input, output, and done folders (if using network shares, see important note below)
 - `pytest` for testing
 - `gh` CLI for GitHub issue management
+
+> **Note for Network Share Users:**
+> If your input/output/done directories are on a network share (e.g., SMB/AFP/NFS), macOS may unmount these shares during sleep, network interruptions, or reboots. This service does **not** automatically recover if a share is lost; you may see errors in the logs or missed files until the share is remounted and the service is restarted. For best results, ensure your shares are reliably auto-mounted (e.g., via login items or Automator) and consider a wrapper or monitoring script to restart the service if the share becomes unavailable.
 
 ## Setup
 1. **Clone this repository locally.**
@@ -46,7 +49,13 @@ This project is a Python-based macOS background service that monitors a network 
    - `PDF2MD_MD_PAGE_DELIMITER`: (optional) If set to `delimited`, pages are separated with a markdown divider. If `concat`, all pages are appended with no divider. Default: `delimited`
 
    You may copy `.env.example` to `.env` and edit as needed. The app will automatically load `.env` if `python-dotenv` is installed.
-5. **Set up LM Studio** and ensure it is accessible from the service.
+5. **Set up LM Studio**:
+   - Download and install [LM Studio](https://lmstudio.ai/) (free, cross-platform desktop app).
+   - Download and load the OCR model: `allenai/olmocr-7b-0225-preview` (or another compatible model).
+   - LM Studio can run on the same machine as this service, or on a remote machine. Set `PDF2MD_LM_STUDIO_API` to the appropriate URL (e.g., `http://localhost:1234/v1` for local, or your remote address).
+   - Make sure LM Studio is running and accessible before starting this service.
+
+6. **Configure environment variables** for the following required settings (can be set in a `.env` file):
 
 **Important:**
 - When running the service manually, always activate your Python virtual environment first (`source venv/bin/activate`).
