@@ -13,13 +13,21 @@ class PDFHandler(FileSystemEventHandler):
         self.callback = callback
         self.seen = set()
 
+    def on_deleted(self, event):
+        if not event.is_directory and event.src_path.endswith('.pdf'):
+            path = Path(event.src_path)
+            logger.warning(f"PDF deleted before processing: {path}")
+
     def on_created(self, event):
         if not event.is_directory and event.src_path.endswith('.pdf'):
             path = Path(event.src_path)
             if path not in self.seen:
                 self.seen.add(path)
                 logger.info(f"Detected new PDF: {path}")
-                self.callback(str(path))
+                try:
+                    self.callback(str(path))
+                except Exception as e:
+                    logger.error(f"Error in callback for new PDF {path}: {e}")
 
     def on_moved(self, event):
         # Handle renames/moves into the directory as well
@@ -28,7 +36,10 @@ class PDFHandler(FileSystemEventHandler):
             if path not in self.seen:
                 self.seen.add(path)
                 logger.info(f"Detected moved PDF: {path}")
-                self.callback(str(path))
+                try:
+                    self.callback(str(path))
+                except Exception as e:
+                    logger.error(f"Error in callback for moved PDF {path}: {e}")
 
 def monitor_folder(input_dir, callback, stop_event=None, poll_interval=1.0):
     """

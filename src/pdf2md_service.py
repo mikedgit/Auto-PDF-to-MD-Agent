@@ -57,6 +57,8 @@ def on_new_pdf(path):
         logger.error(f"File did not stabilize in time or was deleted: {pdf_path}")
         return
     logger.info(f"Processing PDF to markdown: {pdf_path} -> {output_path}")
+    api_key = os.environ.get("PDF2MD_LM_STUDIO_API_KEY", "lm-studio")
+    model_name = os.environ.get("PDF2MD_LM_STUDIO_MODEL", "allenai_olmocr-7b-0225-preview")
     try:
         if not pdf_path.exists():
             logger.error(f"File was deleted before processing: {pdf_path}")
@@ -64,8 +66,8 @@ def on_new_pdf(path):
         md = ocr_pdf_to_markdown_sync(
             str(pdf_path),
             base_url=cfg.LM_STUDIO_API,
-            api_key="lm-studio",  # Default for LM Studio
-            model_name="allenai_olmocr-7b-0225-preview",  # Or make configurable
+            api_key=api_key,
+            model_name=model_name,
             timeout=120,
             delimiter=cfg.MD_PAGE_DELIMITER,
         )
@@ -85,13 +87,21 @@ def on_new_pdf(path):
         logger.error(f"Error processing {pdf_path}: {e}")
 
 def main():
+    import sys
     cfg = load_config()
+    # Healthcheck CLI
+    if len(sys.argv) > 1 and sys.argv[1] == "--healthcheck":
+        print("OK")
+        return
     logger.info(f"Monitoring: {cfg.INPUT_DIR}")
     stop_event = threading.Event()
     try:
         monitor_folder(cfg.INPUT_DIR, on_new_pdf, stop_event)
     except KeyboardInterrupt:
         logger.info("Stopping monitor...")
+        stop_event.set()
+    except Exception as e:
+        logger.exception(f"Unhandled exception in service: {e}")
         stop_event.set()
 
 if __name__ == "__main__":
