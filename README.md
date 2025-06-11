@@ -13,8 +13,14 @@ This project is a Python-based macOS background service that monitors a network 
 - **Robust error handling and logging**
 - **Automatic startup on reboot**
 - **Tested with PyTest**
-- **Follows Simon Willison’s "perfect commit" principles**
 - **GitHub issues managed via `gh` CLI**
+
+## Acknowledgements
+
+- **Model:** This project uses the [allenai/olmOCR-7B-0225-preview](https://huggingface.co/allenai/olmOCR-7B-0225-preview) OCR model, developed and released by [Allen Institute for AI (AI2)](https://allenai.org/). The model is fine-tuned from [Qwen2-VL-7B-Instruct](https://huggingface.co/Qwen/Qwen2-VL-7B-Instruct) using the [olmOCR-mix-0225](https://huggingface.co/datasets/allenai/olmOCR-mix-0225) dataset. Special thanks to the AI2 team for their open research and model release.
+- **Model Card and Usage:** See the [olmOCR-7B-0225-preview model card](https://huggingface.co/allenai/olmOCR-7B-0225-preview) for details, usage, and license (Apache 2.0).
+- **Blog/Release Notes:** For more information about the OLMo and olmOCR family, see [AllenAI's OLMo project page](https://allenai.org/olmo) and [release notes](https://allenai.org/olmo/release-notes).
+- **Perfect Commit Principle:** This project follows [Simon Willison’s "perfect commit" principles](https://simonwillison.net/2022/May/9/perfect-commit/).
 
 ## Requirements
 - Python 3.9+
