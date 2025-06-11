@@ -57,8 +57,8 @@ def on_new_pdf(path):
         logger.error(f"File did not stabilize in time or was deleted: {pdf_path}")
         return
     logger.info(f"Processing PDF to markdown: {pdf_path} -> {output_path}")
-    api_key = os.environ.get("PDF2MD_LM_STUDIO_API_KEY", "lm-studio")
-    model_name = os.environ.get("PDF2MD_LM_STUDIO_MODEL", "allenai_olmocr-7b-0225-preview")
+    api_key = cfg.LM_STUDIO_API_KEY
+    model_name = cfg.LM_STUDIO_MODEL
     try:
         if not pdf_path.exists():
             logger.error(f"File was deleted before processing: {pdf_path}")

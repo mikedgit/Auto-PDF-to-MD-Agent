@@ -40,6 +40,8 @@ This project is a Python-based macOS background service that monitors a network 
    - `PDF2MD_OUTPUT_DIR`: Path to the output directory for markdown files
    - `PDF2MD_DONE_DIR`: Path to the directory where processed PDFs are moved
    - `PDF2MD_LM_STUDIO_API`: URL for LM Studio API (e.g., `http://localhost:1234`)
+   - `PDF2MD_LM_STUDIO_MODEL`: (optional) Name of the LM Studio model to use for OCR (default: `allenai_olmocr-7b-0225-preview`)
+   - `PDF2MD_LM_STUDIO_API_KEY`: (optional) API key for LM Studio (default: `lm-studio`)
    - `PDF2MD_LOG_FILE`: (optional) Path for the log file (default: `app.log`)
    - `PDF2MD_MD_PAGE_DELIMITER`: (optional) If set to `delimited`, pages are separated with a markdown divider. If `concat`, all pages are appended with no divider. Default: `delimited`
 
