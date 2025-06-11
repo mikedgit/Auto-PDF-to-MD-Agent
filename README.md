@@ -47,6 +47,10 @@ This project is a Python-based macOS background service that monitors a network 
 
    You may copy `.env.example` to `.env` and edit as needed. The app will automatically load `.env` if `python-dotenv` is installed.
 5. **Set up LM Studio** and ensure it is accessible from the service.
+
+**Important:**
+- When running the service manually, always activate your Python virtual environment first (`source venv/bin/activate`).
+- When running as a LaunchAgent, you must specify the full path to your venv's Python interpreter in the plist file (see below). This ensures all dependencies are found in your venv, not at the system level.
 6. **Run tests:**
    ```sh
    pytest
@@ -79,6 +83,8 @@ If using a remote server, use its address (e.g., `http://192.168.0.74:1234/v1`).
 
 You can run this service as a background LaunchAgent so it starts automatically on login/reboot:
 
+> **Important:** The LaunchAgent must use your virtual environment's Python interpreter, not the system Python, to ensure all dependencies are available.
+
 ### 1. Create a LaunchAgent plist file
 
 Save the following as `~/Library/LaunchAgents/com.yourusername.pdf2md.plist` (replace `yourusername` as appropriate):
@@ -92,7 +98,7 @@ Save the following as `~/Library/LaunchAgents/com.yourusername.pdf2md.plist` (re
     <string>com.yourusername.pdf2md</string>
     <key>ProgramArguments</key>
     <array>
-        <string>/Users/YOURUSER/.pyenv/versions/3.13.3/envs/pdf2md/venv/bin/python</string>
+        <string>/Users/YOURUSER/Documents/Auto-PDF-to-MD-Agent/venv/bin/python</string>
         <string>/Users/YOURUSER/Documents/Auto-PDF-to-MD-Agent/src/pdf2md_service.py</string>
     </array>
     <key>WorkingDirectory</key>
