@@ -66,8 +66,14 @@ class OcrProcessor:
     async def process_pdf_to_markdown(self, pdf_path: str, delimiter: str = "delimited") -> str:
         import time
         pdf_path = Path(pdf_path)
-        reader = PdfReader(pdf_path)
-        num_pages = len(reader.pages)
+        try:
+            with open(pdf_path, 'rb') as pdf_file:
+                reader = PdfReader(pdf_file)
+                num_pages = len(reader.pages)
+        except Exception as e:
+            logger.error(f"Failed to read PDF {pdf_path}: {e}")
+            return f"**[ERROR: Failed to read PDF {pdf_path}: {e}]**"
+        
         markdown_chunks: List[str] = []
         page_failures = 0
         total_start = time.time()

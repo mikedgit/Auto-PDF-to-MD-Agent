@@ -48,7 +48,7 @@ def wait_for_file_stable(path, stable_secs=2, max_wait=300):
     logger.error(f"Timed out waiting for file to stabilize: {path}")
     return False
 
-def on_new_pdf(path):
+def on_new_pdf(path, handler=None):
     cfg = load_config()
     pdf_path = Path(path)
     output_path = Path(cfg.OUTPUT_DIR) / (pdf_path.stem + ".md")
@@ -79,6 +79,9 @@ def on_new_pdf(path):
         try:
             shutil.move(str(pdf_path), str(done_path))
             logger.info(f"Moved PDF to {done_path}")
+            # Clear from seen set after successful processing
+            if handler:
+                handler.clear_seen_file(str(pdf_path))
         except FileNotFoundError:
             logger.error(f"PDF was deleted before it could be moved: {pdf_path}")
         except Exception as e:
