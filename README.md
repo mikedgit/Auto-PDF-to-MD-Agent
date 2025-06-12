@@ -1,4 +1,5 @@
 # Auto PDF to Markdown Agent
+*Last updated: December 2024*
 
 ## Overview
 This project is a Python-based macOS background service that monitors a network folder for new PDF files. When a PDF appears, it uses LM Studio (with a local LLM) to perform optical character recognition (OCR) and converts the content into Markdown format. The Markdown output is saved to a target network directory, and the processed PDF is moved to a 'done' directory. The service is designed to run unattended, survive reboots, and handle multiple PDFs robustly.
@@ -55,9 +56,12 @@ This project is a Python-based macOS background service that monitors a network 
    - `PDF2MD_MD_PAGE_DELIMITER`: (optional) If set to `delimited`, pages are separated with a markdown divider. If `concat`, all pages are appended with no divider. Default: `delimited`
 
    You may copy `.env.example` to `.env` and edit as needed. The app will automatically load `.env` if `python-dotenv` is installed.
-5. **Set up LM Studio**:
+5. **Set up LM Studio** *(Instructions current as of LM Studio v0.2.x, December 2024)*:
    - Download and install [LM Studio](https://lmstudio.ai/) (free, cross-platform desktop app).
    - Download and load the OCR model: `allenai/olmocr-7b-0225-preview` (or another compatible model).
+   - **Load the model**: In LM Studio, go to the model and click "Load"
+   - **Start Local Server**: Click "Local Server" tab, then "Start Server"
+   - **Verify**: Check that the server shows as running on `http://localhost:1234`
    - LM Studio can run on the same machine as this service, or on a remote machine. Set `PDF2MD_LM_STUDIO_API` to the appropriate URL (e.g., `http://localhost:1234/v1` for local, or your remote address).
    - Make sure LM Studio is running and accessible before starting this service.
 
@@ -95,6 +99,7 @@ If using a remote server, use its address (e.g., `http://192.168.0.74:1234/v1`).
 ---
 
 ## Running as a macOS LaunchAgent (auto-start on login)
+*(macOS LaunchAgent setup, December 2024)*
 
 You can run this service as a background LaunchAgent so it starts automatically on login/reboot:
 
