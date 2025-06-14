@@ -60,6 +60,40 @@ class PDFHandler(FileSystemEventHandler):
             self.seen.discard(Path(path))
 
 
+def _process_existing_pdfs(
+    input_dir: Path, handler: PDFHandler, callback: Callable[[str], None]
+) -> None:
+    """Scan input directory for existing PDF files and queue them for processing."""
+    import threading
+    try:
+        existing_pdfs = list(input_dir.glob("*.pdf"))
+        if existing_pdfs:
+            logger.info(f"Found {len(existing_pdfs)} existing PDF files to process")
+            for pdf_path in existing_pdfs:
+                if pdf_path.is_file():
+                    with handler.lock:
+                        if pdf_path not in handler.seen:
+                            handler.seen.add(pdf_path)
+                            logger.info(f"Queuing existing PDF for processing: {pdf_path}")
+                            # Process each file in a separate thread to avoid blocking
+                            def process_file(file_path: str, path_obj: Path) -> None:
+                                try:
+                                    callback(file_path)
+                                except Exception as e:
+                                    logger.error(f"Error processing existing PDF {file_path}: {e}")
+                                    # Remove from seen on callback error so it can be retried
+                                    with handler.lock:
+                                        handler.seen.discard(path_obj)
+                            
+                            thread = threading.Thread(target=process_file, args=(str(pdf_path), pdf_path))
+                            thread.daemon = True
+                            thread.start()
+        else:
+            logger.info("No existing PDF files found in input directory")
+    except Exception as e:
+        logger.error(f"Error scanning for existing PDF files: {e}")
+
+
 def monitor_folder(
     input_dir: str | Path,
     callback: Callable[..., Any],
@@ -68,6 +102,7 @@ def monitor_folder(
 ) -> None:
     """
     Watches input_dir for new PDF files and calls callback(path) for each new file.
+    Also processes any existing PDF files in the directory on startup.
     If stop_event is provided, stops when set.
     """
     input_dir = Path(input_dir)
@@ -87,6 +122,10 @@ def monitor_folder(
 
     handler = PDFHandler(wrapped_callback)
     handler_ref["handler"] = handler
+    
+    # Process existing PDF files before starting file system monitoring
+    _process_existing_pdfs(input_dir, handler, wrapped_callback)
+    
     observer = Observer()
     observer.schedule(handler, str(input_dir), recursive=False)
     observer.start()
