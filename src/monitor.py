@@ -1,11 +1,13 @@
-from watchdog.observers import Observer
-from watchdog.events import FileSystemEventHandler
-from pathlib import Path
+import logging
 import threading
 import time
-import logging
+from pathlib import Path
+
+from watchdog.events import FileSystemEventHandler
+from watchdog.observers import Observer
 
 logger = logging.getLogger("pdf2md.monitor")
+
 
 class PDFHandler(FileSystemEventHandler):
     def __init__(self, callback):
@@ -15,14 +17,14 @@ class PDFHandler(FileSystemEventHandler):
         self.lock = threading.Lock()
 
     def on_deleted(self, event):
-        if not event.is_directory and event.src_path.endswith('.pdf'):
+        if not event.is_directory and event.src_path.endswith(".pdf"):
             path = Path(event.src_path)
             with self.lock:
                 self.seen.discard(path)  # Remove from seen set when deleted
             logger.warning(f"PDF deleted before processing: {path}")
 
     def on_created(self, event):
-        if not event.is_directory and event.src_path.endswith('.pdf'):
+        if not event.is_directory and event.src_path.endswith(".pdf"):
             path = Path(event.src_path)
             with self.lock:
                 if path not in self.seen:
@@ -37,7 +39,7 @@ class PDFHandler(FileSystemEventHandler):
 
     def on_moved(self, event):
         # Handle renames/moves into the directory as well
-        if not event.is_directory and event.dest_path.endswith('.pdf'):
+        if not event.is_directory and event.dest_path.endswith(".pdf"):
             path = Path(event.dest_path)
             with self.lock:
                 if path not in self.seen:
@@ -49,11 +51,12 @@ class PDFHandler(FileSystemEventHandler):
                         logger.error(f"Error in callback for moved PDF {path}: {e}")
                         # Remove from seen on callback error so it can be retried
                         self.seen.discard(path)
-    
+
     def clear_seen_file(self, path):
         """Remove a file from the seen set after successful processing"""
         with self.lock:
             self.seen.discard(Path(path))
+
 
 def monitor_folder(input_dir, callback, stop_event=None, poll_interval=1.0):
     """
@@ -61,23 +64,24 @@ def monitor_folder(input_dir, callback, stop_event=None, poll_interval=1.0):
     If stop_event is provided, stops when set.
     """
     input_dir = Path(input_dir)
-    
+
     # Store handler reference for use in callback
-    handler_ref = {'handler': None}
-    
+    handler_ref = {"handler": None}
+
     # Create a wrapper callback that can optionally pass the handler
     def wrapped_callback(path):
         import inspect
+
         sig = inspect.signature(callback)
         if len(sig.parameters) >= 2:
             # New signature: callback(path, handler)
-            callback(path, handler_ref['handler'])
+            callback(path, handler_ref["handler"])
         else:
             # Old signature: callback(path)
             callback(path)
-    
+
     handler = PDFHandler(wrapped_callback)
-    handler_ref['handler'] = handler
+    handler_ref["handler"] = handler
     observer = Observer()
     observer.schedule(handler, str(input_dir), recursive=False)
     observer.start()

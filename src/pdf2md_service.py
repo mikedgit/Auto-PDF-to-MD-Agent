@@ -1,24 +1,22 @@
+import logging
+import shutil
+import threading
+import time
+from pathlib import Path
+
 from src.config import load_config
 from src.monitor import monitor_folder
 from src.ocr import ocr_pdf_to_markdown_sync
-import threading
-from pathlib import Path
-import shutil
-import os
-import time
-import logging
 
 # Setup logging
 cfg_for_logging = load_config()
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s %(levelname)s %(name)s: %(message)s',
-    handlers=[
-        logging.FileHandler(cfg_for_logging.LOG_FILE),
-        logging.StreamHandler()
-    ]
+    format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+    handlers=[logging.FileHandler(cfg_for_logging.LOG_FILE), logging.StreamHandler()],
 )
 logger = logging.getLogger("pdf2md.service")
+
 
 def wait_for_file_stable(path, stable_secs=2, max_wait=300):
     """Wait until file size is unchanged for stable_secs and file is non-empty. Timeout after max_wait (seconds)."""
@@ -47,6 +45,7 @@ def wait_for_file_stable(path, stable_secs=2, max_wait=300):
         waited += 1
     logger.error(f"Timed out waiting for file to stabilize: {path}")
     return False
+
 
 def on_new_pdf(path, handler=None):
     cfg = load_config()
@@ -89,8 +88,10 @@ def on_new_pdf(path, handler=None):
     except Exception as e:
         logger.error(f"Error processing {pdf_path}: {e}")
 
+
 def main():
     import sys
+
     cfg = load_config()
     # Healthcheck CLI
     if len(sys.argv) > 1 and sys.argv[1] == "--healthcheck":
@@ -106,6 +107,7 @@ def main():
     except Exception as e:
         logger.exception(f"Unhandled exception in service: {e}")
         stop_event.set()
+
 
 if __name__ == "__main__":
     main()

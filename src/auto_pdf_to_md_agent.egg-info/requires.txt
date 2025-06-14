@@ -1,0 +1,12 @@
+pytest
+pytest-cov
+pytest-asyncio
+watchdog
+python-dotenv
+openai
+pypdf
+olmocr
+ruff
+mypy
+bandit
+pip-audit
