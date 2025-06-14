@@ -27,7 +27,7 @@ class OcrProcessor:
                 from olmocr.pipeline import build_page_query
                 query = await build_page_query(pdf_path, page=page_num, target_longest_image_dim=1024, target_anchor_text_len=6000)
                 query['model'] = self.model_name
-                response = self.client.completions.create(**query)
+                response = self.client.chat.completions.create(**query)
                 duration = time.time() - start_time
                 logger.info(f"OCR page {page_num} took {duration:.2f}s (attempt {attempt})")
                 if response is None:
@@ -37,12 +37,26 @@ class OcrProcessor:
                     logger.error(f"LM Studio API response missing 'choices' for page {page_num} of {pdf_path}. Response: {response}")
                     return f"**[ERROR: LM Studio API response missing 'choices' for page {page_num}]**"
                 choice = response.choices[0]
-                if not hasattr(choice, 'text'):
-                    logger.error(f"LM Studio API response missing 'text' for page {page_num} of {pdf_path}. Response: {response}")
-                    return f"**[ERROR: LM Studio API response missing 'text' for page {page_num}]**"
-                model_obj = json.loads(choice.text)
+                if not hasattr(choice, 'message') or not hasattr(choice.message, 'content'):
+                    logger.error(f"LM Studio API response missing 'message.content' for page {page_num} of {pdf_path}. Response: {response}")
+                    return f"**[ERROR: LM Studio API response missing 'message.content' for page {page_num}]**"
+                model_obj = json.loads(choice.message.content)
                 if 'natural_text' in model_obj and model_obj['natural_text']:
                     return model_obj['natural_text'].strip()
+                elif 'natural_text' in model_obj and model_obj['natural_text'] is None:
+                    # Handle case where model classifies page as diagram but might contain extractable text
+                    # Log the classification but attempt to provide useful information
+                    classification_info = []
+                    if model_obj.get('is_diagram', False):
+                        classification_info.append("diagram")
+                    if model_obj.get('is_table', False):
+                        classification_info.append("table")
+                    if model_obj.get('primary_language'):
+                        classification_info.append(f"language: {model_obj['primary_language']}")
+                    
+                    classification_str = ", ".join(classification_info) if classification_info else "unknown content"
+                    logger.warning(f"Page {page_num} classified as {classification_str} with no extractable text - this might be a misclassification for forms or structured documents")
+                    return f"**[Page {page_num}: Classified as {classification_str} - no text extracted. This may be a form or structured document that requires manual review.]**"
                 else:
                     logger.error(f"LM Studio API response JSON missing 'natural_text' for page {page_num} of {pdf_path}. JSON: {model_obj}")
                     return f"**[ERROR: LM Studio API response JSON missing 'natural_text' for page {page_num}]**"
