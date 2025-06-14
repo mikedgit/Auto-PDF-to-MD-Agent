@@ -27,7 +27,7 @@ class OcrProcessor:
                 from olmocr.pipeline import build_page_query
                 query = await build_page_query(pdf_path, page=page_num, target_longest_image_dim=1024, target_anchor_text_len=6000)
                 query['model'] = self.model_name
-                response = self.client.chat.completions.create(**query)
+                response = self.client.completions.create(**query)
                 duration = time.time() - start_time
                 logger.info(f"OCR page {page_num} took {duration:.2f}s (attempt {attempt})")
                 if response is None:
@@ -37,10 +37,10 @@ class OcrProcessor:
                     logger.error(f"LM Studio API response missing 'choices' for page {page_num} of {pdf_path}. Response: {response}")
                     return f"**[ERROR: LM Studio API response missing 'choices' for page {page_num}]**"
                 choice = response.choices[0]
-                if not hasattr(choice, 'message') or not hasattr(choice.message, 'content'):
-                    logger.error(f"LM Studio API response missing 'message.content' for page {page_num} of {pdf_path}. Response: {response}")
-                    return f"**[ERROR: LM Studio API response missing 'message.content' for page {page_num}]**"
-                model_obj = json.loads(choice.message.content)
+                if not hasattr(choice, 'text'):
+                    logger.error(f"LM Studio API response missing 'text' for page {page_num} of {pdf_path}. Response: {response}")
+                    return f"**[ERROR: LM Studio API response missing 'text' for page {page_num}]**"
+                model_obj = json.loads(choice.text)
                 if 'natural_text' in model_obj and model_obj['natural_text']:
                     return model_obj['natural_text'].strip()
                 else:
