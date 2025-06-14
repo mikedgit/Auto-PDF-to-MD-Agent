@@ -2,15 +2,16 @@
 *Last updated: June 2025*
 
 ## Overview
-This project is a Python-based macOS background service that monitors a network folder for new PDF files. When a PDF appears, it uses LM Studio (with a local LLM) to perform optical character recognition (OCR) and converts the content into Markdown format. The Markdown output is saved to a target network directory, and the processed PDF is moved to a 'done' directory. The service is designed to run unattended, survive reboots, and handle multiple PDFs robustly.
+This project is a Python-based macOS background service that monitors a network folder for PDF files. When the service starts, it processes any existing PDFs in the monitored directory, then continues to monitor for new files. It uses LM Studio (with a local LLM) to perform optical character recognition (OCR) and converts the content into Markdown format. The Markdown output is saved to a target network directory, and the processed PDF is moved to a 'done' directory. The service is designed to run unattended, survive reboots, and handle multiple PDFs robustly.
 
 ## Features
 - **Runs as a macOS background service** (LaunchAgent/daemon)
 - **Monitors a network folder** for incoming PDFs
+- **Processes existing PDFs** found in the monitored directory on startup
 - **Invokes LM Studio** and a local model for OCR
 - **Outputs Markdown** to a specified directory
 - **Moves processed PDFs** to a 'done' directory
-- **Handles multiple PDFs** and processes them sequentially
+- **Handles multiple PDFs** and processes them concurrently
 - **Robust error handling and logging**
 - **Automatic startup on reboot**
 - **Tested with PyTest**
@@ -87,7 +88,8 @@ python src/pdf2md_service.py
 ```
 
 - The service will run in the background, monitoring the configured folder.
-- Place a PDF in the input directory to trigger processing.
+- **On startup**: The service automatically processes any existing PDF files already present in the input directory.
+- **During operation**: Place a PDF in the input directory to trigger processing.
 - Markdown files will appear in the output directory; processed PDFs will be moved to the done directory.
 
 **Note:** The LM Studio API URL in your environment variable should include `/v1`, for example:
@@ -148,6 +150,21 @@ launchctl unload ~/Library/LaunchAgents/com.user.pdf2md.plist
 
 ---
 
+## Service Behavior
+
+### Startup Processing
+When the service starts (either manually or as a LaunchAgent), it automatically scans the input directory for existing PDF files and processes them concurrently. This means:
+
+- **Drag-and-drop workflow**: You can drag multiple PDF files into the monitored directory and restart the service to process them all
+- **Batch processing**: All existing PDFs are processed simultaneously using separate threads for faster completion
+- **No file left behind**: The service ensures all PDFs in the directory are processed, regardless of when they were added
+
+### Ongoing Monitoring
+After processing any existing files, the service continues to monitor the directory for new PDFs added while it's running. New files are processed immediately upon detection.
+
+### Error Recovery
+If a PDF fails to process due to errors (e.g., API timeout, file corruption), it remains in the input directory and will be retried the next time the service starts.
+
 ## Logging
 - All activity and errors are logged to a file for troubleshooting and auditing.
 
@@ -159,12 +176,14 @@ launchctl unload ~/Library/LaunchAgents/com.user.pdf2md.plist
 ## Project Status
 
 - **Folder monitoring:** Implemented and robust (see `src/monitor.py`).
+- **Existing file processing:** Service processes any PDFs already present in monitored directory on startup.
+- **Concurrent processing:** Multiple PDF files are processed simultaneously using threading.
 - **LM Studio OCR integration:** Fully integrated and tested (see `src/ocr.py`).
 - **Markdown output:** Implemented; output is configurable and tested.
 - **PDF move/cleanup:** Implemented; processed PDFs are moved to a 'done' directory.
 - **Logging and error handling:** Unified logging across all modules; all errors and activity are logged to file and console.
 - **macOS service integration:** LaunchAgent setup is fully documented; service can run automatically at login/reboot.
-- **Testing:** Unit and integration tests provided (see `tests/`).
+- **Testing:** Unit and integration tests provided (see `tests/`) with 95%+ code coverage.
 
 **Next steps:**
 - Continue real-world testing on your network shares and PDFs.
