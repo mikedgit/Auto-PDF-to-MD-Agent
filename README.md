@@ -1,5 +1,5 @@
 # Auto PDF to Markdown Agent
-*Last updated: December 2024*
+*Last updated: June 2025*
 
 ## Overview
 This project is a Python-based macOS background service that monitors a network folder for new PDF files. When a PDF appears, it uses LM Studio (with a local LLM) to perform optical character recognition (OCR) and converts the content into Markdown format. The Markdown output is saved to a target network directory, and the processed PDF is moved to a 'done' directory. The service is designed to run unattended, survive reboots, and handle multiple PDFs robustly.
@@ -170,7 +170,3 @@ launchctl unload ~/Library/LaunchAgents/com.user.pdf2md.plist
 - Continue real-world testing on your network shares and PDFs.
 - Refine error handling and logging as needed based on production experience.
 - Open GitHub issues for any new feature requests or bugs.
-
----
-
-*For more details on the perfect commit, see [Simon Willison’s blog](https://simonwillison.net/2020/Oct/9/perfect-commit/).*
