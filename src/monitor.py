@@ -1,31 +1,33 @@
+import inspect
 import logging
 import threading
 import time
 from pathlib import Path
+from typing import Any, Callable
 
-from watchdog.events import FileSystemEventHandler
+from watchdog.events import FileSystemEventHandler, FileSystemEvent
 from watchdog.observers import Observer
 
 logger = logging.getLogger("pdf2md.monitor")
 
 
 class PDFHandler(FileSystemEventHandler):
-    def __init__(self, callback):
+    def __init__(self, callback: Callable[..., Any]) -> None:
         super().__init__()
         self.callback = callback
-        self.seen = set()
+        self.seen: set[Path] = set()
         self.lock = threading.Lock()
 
-    def on_deleted(self, event):
-        if not event.is_directory and event.src_path.endswith(".pdf"):
-            path = Path(event.src_path)
+    def on_deleted(self, event: FileSystemEvent) -> None:
+        if not event.is_directory and str(event.src_path).endswith(".pdf"):
+            path = Path(str(event.src_path))
             with self.lock:
                 self.seen.discard(path)  # Remove from seen set when deleted
             logger.warning(f"PDF deleted before processing: {path}")
 
-    def on_created(self, event):
-        if not event.is_directory and event.src_path.endswith(".pdf"):
-            path = Path(event.src_path)
+    def on_created(self, event: FileSystemEvent) -> None:
+        if not event.is_directory and str(event.src_path).endswith(".pdf"):
+            path = Path(str(event.src_path))
             with self.lock:
                 if path not in self.seen:
                     self.seen.add(path)
@@ -37,10 +39,10 @@ class PDFHandler(FileSystemEventHandler):
                         # Remove from seen on callback error so it can be retried
                         self.seen.discard(path)
 
-    def on_moved(self, event):
+    def on_moved(self, event: FileSystemEvent) -> None:
         # Handle renames/moves into the directory as well
-        if not event.is_directory and event.dest_path.endswith(".pdf"):
-            path = Path(event.dest_path)
+        if not event.is_directory and str(event.dest_path).endswith(".pdf"):
+            path = Path(str(event.dest_path))
             with self.lock:
                 if path not in self.seen:
                     self.seen.add(path)
@@ -52,13 +54,18 @@ class PDFHandler(FileSystemEventHandler):
                         # Remove from seen on callback error so it can be retried
                         self.seen.discard(path)
 
-    def clear_seen_file(self, path):
+    def clear_seen_file(self, path: str) -> None:
         """Remove a file from the seen set after successful processing"""
         with self.lock:
             self.seen.discard(Path(path))
 
 
-def monitor_folder(input_dir, callback, stop_event=None, poll_interval=1.0):
+def monitor_folder(
+    input_dir: str | Path,
+    callback: Callable[..., Any],
+    stop_event: threading.Event | None = None,
+    poll_interval: float = 1.0,
+) -> None:
     """
     Watches input_dir for new PDF files and calls callback(path) for each new file.
     If stop_event is provided, stops when set.
@@ -66,12 +73,10 @@ def monitor_folder(input_dir, callback, stop_event=None, poll_interval=1.0):
     input_dir = Path(input_dir)
 
     # Store handler reference for use in callback
-    handler_ref = {"handler": None}
+    handler_ref: dict[str, PDFHandler | None] = {"handler": None}
 
     # Create a wrapper callback that can optionally pass the handler
-    def wrapped_callback(path):
-        import inspect
-
+    def wrapped_callback(path: str) -> None:
         sig = inspect.signature(callback)
         if len(sig.parameters) >= 2:
             # New signature: callback(path, handler)

@@ -65,7 +65,7 @@ class OcrProcessor:
                     return f"**[ERROR: LM Studio API response missing 'message.content' for page {page_num}]**"
                 model_obj = json.loads(choice.message.content)
                 if "natural_text" in model_obj and model_obj["natural_text"]:
-                    return model_obj["natural_text"].strip()
+                    return str(model_obj["natural_text"]).strip()
                 elif "natural_text" in model_obj and model_obj["natural_text"] is None:
                     # Handle case where model classifies page as diagram but might contain extractable text
                     # Log the classification but attempt to provide useful information
@@ -121,9 +121,9 @@ class OcrProcessor:
     ) -> str:
         import time
 
-        pdf_path = Path(pdf_path)
+        pdf_path_obj = Path(pdf_path)
         try:
-            with open(pdf_path, "rb") as pdf_file:
+            with open(pdf_path_obj, "rb") as pdf_file:
                 reader = PdfReader(pdf_file)
                 num_pages = len(reader.pages)
         except Exception as e:

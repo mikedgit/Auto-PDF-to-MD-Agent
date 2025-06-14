@@ -13,6 +13,8 @@ def get_env_var(name: str, default: str | None = None, required: bool = False) -
     value = os.environ.get(name, default)
     if required and value is None:
         raise RuntimeError(f"Missing required environment variable: {name}")
+    if value is None:
+        return ""
     return value
 
 
@@ -27,7 +29,7 @@ class Config:
     LOG_FILE: str = "app.log"
     MD_PAGE_DELIMITER: str = "delimited"  # 'delimited' or 'concat'
 
-    def as_dict(self):
+    def as_dict(self) -> dict[str, str]:
         return self.__dict__
 
 

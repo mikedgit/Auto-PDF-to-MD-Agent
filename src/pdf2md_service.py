@@ -3,10 +3,14 @@ import shutil
 import threading
 import time
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from src.config import load_config
 from src.monitor import monitor_folder
 from src.ocr import ocr_pdf_to_markdown_sync
+
+if TYPE_CHECKING:
+    from src.monitor import PDFHandler
 
 # Setup logging
 cfg_for_logging = load_config()
@@ -18,7 +22,9 @@ logging.basicConfig(
 logger = logging.getLogger("pdf2md.service")
 
 
-def wait_for_file_stable(path, stable_secs=2, max_wait=300):
+def wait_for_file_stable(
+    path: str | Path, stable_secs: int = 2, max_wait: int = 300
+) -> bool:
     """Wait until file size is unchanged for stable_secs and file is non-empty. Timeout after max_wait (seconds)."""
     path = Path(path)
     last_size = -1
@@ -47,7 +53,7 @@ def wait_for_file_stable(path, stable_secs=2, max_wait=300):
     return False
 
 
-def on_new_pdf(path, handler=None):
+def on_new_pdf(path: str, handler: "PDFHandler | None" = None) -> None:
     cfg = load_config()
     pdf_path = Path(path)
     output_path = Path(cfg.OUTPUT_DIR) / (pdf_path.stem + ".md")
@@ -89,7 +95,7 @@ def on_new_pdf(path, handler=None):
         logger.error(f"Error processing {pdf_path}: {e}")
 
 
-def main():
+def main() -> None:
     import sys
 
     cfg = load_config()
