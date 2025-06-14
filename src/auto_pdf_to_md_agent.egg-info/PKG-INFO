@@ -16,6 +16,7 @@ Requires-Dist: ruff
 Requires-Dist: mypy
 Requires-Dist: bandit
 Requires-Dist: pip-audit
+Requires-Dist: transformers>=4.50.0
 
 # Auto PDF to Markdown Agent
 *Last updated: June 2025*

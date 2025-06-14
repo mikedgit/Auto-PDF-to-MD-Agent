@@ -14,3 +14,4 @@ tests/test_config.py
 tests/test_integration.py
 tests/test_monitor.py
 tests/test_ocr.py
+tests/test_pdf2md_service.py

@@ -2,10 +2,11 @@ import inspect
 import logging
 import threading
 import time
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
-from watchdog.events import FileSystemEventHandler, FileSystemEvent
+from watchdog.events import FileSystemEvent, FileSystemEventHandler
 from watchdog.observers import Observer
 
 logger = logging.getLogger("pdf2md.monitor")
@@ -65,6 +66,7 @@ def _process_existing_pdfs(
 ) -> None:
     """Scan input directory for existing PDF files and queue them for processing."""
     import threading
+
     try:
         existing_pdfs = list(input_dir.glob("*.pdf"))
         if existing_pdfs:
@@ -74,18 +76,25 @@ def _process_existing_pdfs(
                     with handler.lock:
                         if pdf_path not in handler.seen:
                             handler.seen.add(pdf_path)
-                            logger.info(f"Queuing existing PDF for processing: {pdf_path}")
+                            logger.info(
+                                f"Queuing existing PDF for processing: {pdf_path}"
+                            )
+
                             # Process each file in a separate thread to avoid blocking
                             def process_file(file_path: str, path_obj: Path) -> None:
                                 try:
                                     callback(file_path)
                                 except Exception as e:
-                                    logger.error(f"Error processing existing PDF {file_path}: {e}")
+                                    logger.error(
+                                        f"Error processing existing PDF {file_path}: {e}"
+                                    )
                                     # Remove from seen on callback error so it can be retried
                                     with handler.lock:
                                         handler.seen.discard(path_obj)
-                            
-                            thread = threading.Thread(target=process_file, args=(str(pdf_path), pdf_path))
+
+                            thread = threading.Thread(
+                                target=process_file, args=(str(pdf_path), pdf_path)
+                            )
                             thread.daemon = True
                             thread.start()
         else:
@@ -122,10 +131,10 @@ def monitor_folder(
 
     handler = PDFHandler(wrapped_callback)
     handler_ref["handler"] = handler
-    
+
     # Process existing PDF files before starting file system monitoring
     _process_existing_pdfs(input_dir, handler, wrapped_callback)
-    
+
     observer = Observer()
     observer.schedule(handler, str(input_dir), recursive=False)
     observer.start()
