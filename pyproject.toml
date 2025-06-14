@@ -21,6 +21,7 @@ dependencies = [
     "mypy",
     "bandit",
     "pip-audit",
+    "transformers>=4.50.0",
 ]
 
 [tool.pytest.ini_options]
