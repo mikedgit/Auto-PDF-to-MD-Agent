@@ -107,62 +107,37 @@ You can run this service as a background LaunchAgent so it starts automatically 
 
 ### 1. Create a LaunchAgent plist file
 
-Save the following as `~/Library/LaunchAgents/com.yourusername.pdf2md.plist` (replace `yourusername` as appropriate):
+Copy the example plist file to your LaunchAgents directory:
 
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-    <key>Label</key>
-    <string>com.yourusername.pdf2md</string>
-    <key>ProgramArguments</key>
-    <array>
-        <string>/Users/YOURUSER/Documents/Auto-PDF-to-MD-Agent/venv/bin/python</string>
-        <string>/Users/YOURUSER/Documents/Auto-PDF-to-MD-Agent/src/pdf2md_service.py</string>
-    </array>
-    <key>WorkingDirectory</key>
-    <string>/Users/YOURUSER/Documents/Auto-PDF-to-MD-Agent</string>
-    <key>EnvironmentVariables</key>
-    <dict>
-        <key>PYTHONUNBUFFERED</key>
-        <string>1</string>
-    </dict>
-    <key>StandardOutPath</key>
-    <string>/Users/YOURUSER/Documents/Auto-PDF-to-MD-Agent/pdf2md_service.stdout.log</string>
-    <key>StandardErrorPath</key>
-    <string>/Users/YOURUSER/Documents/Auto-PDF-to-MD-Agent/pdf2md_service.stderr.log</string>
-    <key>RunAtLoad</key>
-    <true/>
-    <key>KeepAlive</key>
-    <true/>
-</dict>
-</plist>
+```sh
+cp com.user.pdf2md.plist.example ~/Library/LaunchAgents/com.user.pdf2md.plist
 ```
-- Update all `/Users/YOURUSER/...` paths to your actual username and project location.
-- If using a virtualenv, point to the correct Python interpreter.
+
+Then edit `~/Library/LaunchAgents/com.user.pdf2md.plist` and replace all `/path/to/your/project` placeholders with the actual path to your project directory.
+
+**Important:** The plist file must use the full path to your virtual environment's Python interpreter (e.g., `/Users/yourusername/path/to/project/venv/bin/python`) to ensure all dependencies are available.
 
 ### 2. Ensure environment variables are set
-- Place your `.env` file in the project root (`/Users/YOURUSER/Documents/Auto-PDF-to-MD-Agent/.env`).
+- Place your `.env` file in the project root (same directory as the plist file).
 - The service loads `.env` automatically if `python-dotenv` is installed.
 
 ### 3. Load and start the agent
 ```sh
-launchctl load ~/Library/LaunchAgents/com.yourusername.pdf2md.plist
-launchctl start com.yourusername.pdf2md
+launchctl load ~/Library/LaunchAgents/com.user.pdf2md.plist
 ```
 - The service will now start automatically at login.
 
 ### 4. Check status and logs
 ```sh
 launchctl list | grep pdf2md
-cat /Users/YOURUSER/Documents/Auto-PDF-to-MD-Agent/pdf2md_service.stdout.log
-cat /Users/YOURUSER/Documents/Auto-PDF-to-MD-Agent/pdf2md_service.stderr.log
+tail -f app.log                    # Main service logs
+tail -f launchagent.log            # LaunchAgent stdout
+tail -f launchagent.error.log      # LaunchAgent stderr
 ```
 
 ### 5. Stop/unload the agent
 ```sh
-launchctl unload ~/Library/LaunchAgents/com.yourusername.pdf2md.plist
+launchctl unload ~/Library/LaunchAgents/com.user.pdf2md.plist
 ```
 
 ### Troubleshooting tips
