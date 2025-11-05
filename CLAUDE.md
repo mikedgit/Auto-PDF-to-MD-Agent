@@ -14,6 +14,7 @@ This is a Python-based macOS background service that converts PDFs to Markdown u
 ## Key Technical Details
 
 - **File Processing Flow**: PDF detected → stability check → OCR via LM Studio → Markdown output → move to done directory
+- **Startup Processing**: On service startup, processes any existing PDF files in the input directory before monitoring for new files
 - **Async OCR**: Pages are processed asynchronously with retry logic for transient API errors
 - **File Stability**: Implements `wait_for_file_stable()` to ensure files are fully written before processing
 - **Error Handling**: Comprehensive logging with both file and console output; graceful degradation on API failures
@@ -22,17 +23,24 @@ This is a Python-based macOS background service that converts PDFs to Markdown u
 
 ### Testing
 ```bash
-# Run all tests
-pytest
+# Run all tests (with coverage reporting)
+uv run pytest
 
 # Run specific test file
-pytest tests/test_ocr.py
+uv run pytest tests/test_ocr.py
 
 # Run integration tests
-pytest tests/test_integration.py
+uv run pytest tests/test_integration.py
 
 # Run with verbose output
-pytest -v
+uv run pytest -v
+
+# Run linting and formatting checks
+uv run ruff check src/ tests/
+uv run ruff format --check src/ tests/
+
+# Run type checking
+uv run mypy src/
 ```
 
 ### Running the Service
@@ -50,11 +58,12 @@ python src/pdf2md_service.py --healthcheck
 
 ### Environment Setup
 ```bash
-# Create and activate virtual environment
+# Install dependencies using uv
+uv sync
+
+# Or using traditional venv approach
 python3 -m venv venv
 source venv/bin/activate
-
-# Install dependencies
 pip install -r requirements.txt
 
 # Copy and configure environment
@@ -85,6 +94,8 @@ The service runs as a macOS LaunchAgent for auto-start on login. The plist file 
 - **Integration Tests**: End-to-end testing with temporary directories
 - **Async Testing**: Uses `pytest-asyncio` for OCR processor testing
 - **Mocking**: Extensive use of `unittest.mock` for external API calls
+- **Coverage Requirements**: Minimum 80% code coverage enforced via pytest configuration
+- **Quality Tools**: Automated linting (ruff), type checking (mypy), and security scanning (bandit)
 
 ## Dependencies
 
@@ -93,5 +104,12 @@ Core dependencies:
 - `openai`: LM Studio API client
 - `pypdf`: PDF text extraction
 - `olmocr`: OCR pipeline utilities
+- `transformers>=4.50.0`: Transformer models for OCR
 - `python-dotenv`: Environment file loading
-- `pytest` + `pytest-asyncio`: Testing framework
+
+Development dependencies:
+- `pytest` + `pytest-asyncio` + `pytest-cov`: Testing framework and coverage
+- `ruff`: Linting and code formatting
+- `mypy`: Static type checking
+- `bandit`: Security vulnerability scanning
+- `pip-audit`: Dependency vulnerability checking
