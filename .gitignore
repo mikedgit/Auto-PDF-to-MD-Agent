@@ -1,6 +1,21 @@
+# Python
 venv/
 __pycache__/
 *.pyc
+*.egg-info/
+*.egg
+build/
+dist/
+
+# macOS
 .DS_Store
+
+# Environment
 .env
+
+# Testing
+.coverage
+.coverage.*
+
+# Logs
 *.log
